@@ -6,6 +6,7 @@ import hashlib
 import sys
 import os
 import json
+import tools
 
 AC_DIR  = "accounts"
 POSTFIX = "aes"
@@ -37,6 +38,15 @@ class crypto_handler():
         except Exception as ex:
             print(ex)
             sys.exit(-1)
+"""
+def decrypt_transaction(filename, wallet):
+    password = get_salted_hash(wallet)
+    try:
+        crypto_obj = crypto_handler(password)
+        with open(f"transaction{os.sep}{filename}.{POSTFIX}", "rb")
+    except:
+        return False
+"""
 
 
 class file_handler():
