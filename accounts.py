@@ -7,24 +7,23 @@ from tools import *
 import transfer
 
 def create(username, password):
+    transaction = get_transaction("Welcome", "Your Bank", 25, "Welcome present")
     new_account = {
         "hash" : f"{get_account_hash(username, password)}",
         "username" : username,
         "password" : f"{get_salted_hash(password)}",
         "wallet"   : f"{get_salted_hash(username)[-32:]}",
-        "balance"  : 0,
-        "received_transfers" : [1],
-        "sent_transfers" : [1],
+        "balance"  : 25,
+        "transfers" : [transaction],
         "time" : f"{get_time()}",
     }
     if not os.path.isdir("accounts"):
         os.mkdir("accounts")
 
-    #with open(f"accounts{os.sep}{new_account['hash']}.json", "w") as write_file:
-    #    json.dump(new_account, write_file, indent=4)
+    if os.is_file(f"accounts{os.sep}{new_account['hash']}{aes.POSTFIX}"):
+        print("This username ist taken...")
 
     aes.file_handler(new_account["hash"], password, True, new_account)
-    del password, new_account
 
 class account():
     def __init__(self, username, password):
@@ -43,27 +42,49 @@ class account():
     def __save_account(self):
         self.__account_obj.encrypt(self.__account)
 
-    def deposit(self, amount):
+    def __deposit(self, amount):
         self.__account["balance"] += amount
         self.__save_account()
 
-    def withdraw(self, amount):
+    def __withdraw(self, amount):
         self.__account["balance"] -= amount
         self.__save_account()
+
+    def withdraw(self, amount):
+        if amount < 0:
+            raise Exception("negative_withdraw")
+        transaction = get_transaction(self.__account["username"],
+                                      self.__account["wallet"],
+                                      -1*amount,
+                                      "Cash withdraw")
+        self.__account["transfers"].append(transaction)
+        self.__withdraw(amount)
+
+    def deposit(self, amount):
+        if amount < 0:
+            raise Exception("negative_deposit")
+        transaction = get_transaction(self.__account["username"],
+                                      self.__account["wallet"],
+                                      amount,
+                                      "Cash deposit")
+        self.__account["transfers"].append(transaction)
+        self.__deposit(amount)
 
     def check_for_transfers(self):
         new = self.__transfer_obj.update()
         for transfer in new:
-            self.deposit(transfer["amount"])
-        print(self.__account)
-        print(self.__account['received_transfers'])
-        self.__account['received_transfers'].append(new)
+            self.__deposit(transfer["amount"])
+        if new:
+            self.__account['transfers'].append(new)
         return len(new)
 
     def create_transfer(self, recipient, amount, usage):
+        if amount < 0:
+            raise Exception("negative_amount")
         transfer = self.__transfer_obj.create(get_salted_hash(self.__username), recipient, amount, usage)
-        self.withdraw(amount)
-        self.__account["sent_transfers"].append(transfer)
+        self.__withdraw(amount)
+        self.__account["transfers"].append(transfer)
+        self.__save_account()
 
     def get_username(self):
         return self.__account["username"]
@@ -74,30 +95,27 @@ class account():
     def get_balance(self):
         return self.__account["balance"]
 
-    def get_received_transfers(self):
-        return self.__account["received_transfers"]
-
-    def get_sent_transfers(self):
-        return self.__account["sent_transfers"]
+    def get_transfers(self):
+        self.check_for_transfers()
+        return self.__account["transfers"]
 
     def get_time(self):
         return self.__account["time"]
 
 
-#class accounts:
-#    def __init__(self, account_id):
-
 if __name__=="__main__":
-    #create(input("username"), input("passwort"))
     create("test", "passwort")
     create("test2", "passwort")
     acc2 = account("test2", "passwort")
     acc = account("test", "passwort")
-    print(acc.get_balance())
     acc.deposit(300)
-    print(acc.get_balance())
+    print("Acc1: ", acc.get_balance())
+    print("Acc2: ", acc2.get_balance())
+    print("Acc1: making transfer to Acc2: 100")
     acc.create_transfer(acc2.get_wallet(), 100, "testing")
     acc2.check_for_transfers()
-    print(acc2.get_balance())
+    print("Acc1: ", acc.get_balance())
+    print("Acc2: ", acc2.get_balance())
+    print("Transactions Acc: ", acc2.get_transfers())
 
 

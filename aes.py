@@ -33,20 +33,7 @@ class crypto_handler():
         return self.__key.encrypt(data)
 
     def decrypt(self, data):
-        try:
-            return self.__key.decrypt(data)
-        except Exception as ex:
-            print(ex)
-            sys.exit(-1)
-"""
-def decrypt_transaction(filename, wallet):
-    password = get_salted_hash(wallet)
-    try:
-        crypto_obj = crypto_handler(password)
-        with open(f"transaction{os.sep}{filename}.{POSTFIX}", "rb")
-    except:
-        return False
-"""
+        return self.__key.decrypt(data)
 
 
 class file_handler():
@@ -60,8 +47,9 @@ class file_handler():
             return
 
         if not os.path.isfile(f"{self.__filepath}.{POSTFIX}"):
-            print("Error: This account is not in the database")
-            sys.exit(-1)
+            #print("Error: This account is not in the database")
+            #sys.exit(-1)
+            raise Exception("invalid_credentials")
 
     def encrypt(self, data):
         try:

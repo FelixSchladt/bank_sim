@@ -14,3 +14,15 @@ def get_salted_hash(username):
 
 def get_time():
     return time.strftime("%m.%d.%Y %H:%M:%S", time.localtime())
+
+def get_transaction(username, wallet, amount, usage):
+    time = get_time()
+    username_hash = get_salted_hash(username)
+    return {
+        "id"        : f"{get_salted_hash(wallet+time+username_hash)}",
+        "submitter" : username_hash,
+        "recipient" : wallet,
+        "amount"    : amount,
+        "usage"     : usage,
+        "time"      : time,
+        }

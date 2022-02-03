@@ -1,6 +1,7 @@
 import json
 import os
 from tools import *
+import aes
 
 class transaction():
     def __init__(self, wallet):
@@ -12,15 +13,21 @@ class transaction():
     def update(self):
         files = os.listdir(f"transactions{os.sep}")
         transactions = []
+        crypto_obj = aes.crypto_handler(self.__wallet)
+
         for file in files:
-            with open(f"transactions{os.sep}{file}", "r") as file_stream:
-                file_content = json.load(file_stream)
-                if file_content["recipient"] == self.__wallet:
-                    transactions.append(file_content)
-                    self.__remove(f"transactions{os.sep}{file}")
+            with open(f"transactions{os.sep}{file}", "rb") as file_stream:
+                try:
+                    file_content = json.loads(crypto_obj.decrypt(file_stream.read()).decode())
+                    if file_content["recipient"] == self.__wallet:
+                        transactions.append(file_content)
+                        self.__remove(f"transactions{os.sep}{file}")
+                except Exception as ex:
+                    pass
         return transactions
 
     def create(self, username_hash, target_wallet, amount, usage):
+        crypto_obj = aes.crypto_handler(target_wallet)
         time = get_time()
         transaction = {
             "id"        : f"{get_salted_hash(target_wallet+time+username_hash)}",
@@ -31,8 +38,8 @@ class transaction():
             "time"      : time,
         }
 
-        with open(f"transactions{os.sep}{transaction['id']}", "w") as transfer_file:
-            json.dump(transaction, transfer_file)
+        with open(f"transactions{os.sep}{transaction['id']}", "wb") as transfer_file:
+            transfer_file.write(crypto_obj.encrypt(json.dumps(transaction).encode()))
 
         return transaction
 
