@@ -114,13 +114,13 @@ class terminal():
             self.account_main_menu()
 
     def transfer(self, step):
-        def check_exit( usr):
+        def check_exit(usr):
             if usr == "exit" or "usr" == "Exit" or usr == "e" or usr == "E":
                 self.clear()
                 self.account_main_menu()
 
-        print(f"{c.BOLD}{c.UNDERLINE}Transfer money{c.ENDC}\n{c.OKGREEN}Balance = {self.account.get_balance()}{c.ENDC}\nType 'Exit' to leave\n")
         if step == 0:
+            print(f"{c.BOLD}{c.UNDERLINE}Transfer money{c.ENDC}\n{c.OKGREEN}Balance = {self.account.get_balance()}{c.ENDC}\nType 'Exit' to leave\n")
             self.__wallet = input("Recipient Wallet: ")
             check_exit(self.__wallet)
 
@@ -130,7 +130,11 @@ class terminal():
             self.transfer(1)
         elif step == 1:
             self.__amount = input("Amount: ")
-            check_exit()
+            check_exit(str(self.__amount))
+            if not self.__amount.isnumeric():
+                print("Invalid input\n")
+                self.transfer(1)
+            self.__amount = int(self.__amount)
             if self.__amount > self.account.get_balance() or self.__amount < 0:
                 print("Invalid amount")
                 self.transfer(1)
@@ -139,10 +143,10 @@ class terminal():
             self.__reason = input("Notice: ")
             check_exit(self.__reason)
             try:
-                self.account.create_trasnfer(self.__wallet, self.__amount, self.__reason)
+                self.account.create_transfer(self.__wallet, self.__amount, self.__reason)
                 print("Success")
-            except Exception:
-                print("Failure")
+            except Exception as ex:
+                print("Failure", ex)
             finally:
                 self.clear()
                 self.account_main_menu()

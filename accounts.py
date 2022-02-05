@@ -20,7 +20,7 @@ def create(username, password):
     if not os.path.isdir("accounts"):
         os.mkdir("accounts")
 
-    if os.is_file(f"accounts{os.sep}{new_account['hash']}{aes.POSTFIX}"):
+    if os.path.isfile(f"accounts{os.sep}{new_account['hash']}{aes.POSTFIX}"):
         print("This username ist taken...")
 
     aes.file_handler(new_account["hash"], password, True, new_account)
