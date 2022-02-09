@@ -40,6 +40,7 @@ class transaction():
 
         with open(f"transactions{os.sep}{transaction['id']}", "wb") as transfer_file:
             transfer_file.write(crypto_obj.encrypt(json.dumps(transaction).encode()))
+        transaction["amount"] = -1*transaction["amount"]
 
         return transaction
 

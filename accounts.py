@@ -75,7 +75,8 @@ class account():
         for transfer in new:
             self.__deposit(transfer["amount"])
         if new:
-            self.__account['transfers'].append(new)
+            for transaction in new:
+                self.__account['transfers'].append(transaction)
         return len(new)
 
     def create_transfer(self, recipient, amount, usage):
